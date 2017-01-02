@@ -8,5 +8,5 @@ set(CMAKE_ASM_COMPILER_ARG1 "-f elf64")
 set(CMAKE_ASM_FLAGS_DEBUG "")
 
 
-set(SOURCE_FILES main.c string.asm)
+set(SOURCE_FILES main.c string.asm register.asm)
 add_executable(hello_asm ${SOURCE_FILES})
