@@ -180,9 +180,9 @@ void matrix_multiply(double *a, double *b, double *c, int n);
 
 void matrix_demo() {
     int N = 2000;
-    double *A = malloc(N * N * sizeof(*A));
-    double *B = malloc(N * N * sizeof(*B));
-    double *C = malloc(N * N * sizeof(*C));
+    double *A = aligned_alloc(64, N * N * sizeof(*A));
+    double *B = aligned_alloc(64, N * N * sizeof(*B));
+    double *C = aligned_alloc(64, N * N * sizeof(*C));
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             A[i * N + j] = B[i * N + j] = 1.0;
