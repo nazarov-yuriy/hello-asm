@@ -59,7 +59,7 @@ struct fxstate {
     uint8_t r6[6];
     llf st7;
     uint8_t r7[6];
-    uint8_t r01[512-160];
+    uint8_t r01[512 - 160];
 } __attribute__ ((packed));
 
 struct regs {
@@ -168,7 +168,7 @@ void dump_regs() {
     }
 }
 
-void str_demo(){
+void str_demo() {
     char *s = "Hello world";
     size_t alen = astrlen(s);
     size_t slen = strlen(s);
@@ -176,7 +176,28 @@ void str_demo(){
     printf("slen: %lu\n", slen);
 }
 
+void matrix_multiply(double *a, double *b, double *c, int n);
+
+void matrix_demo() {
+    int N = 2000;
+    double *A = malloc(N * N * sizeof(*A));
+    double *B = malloc(N * N * sizeof(*B));
+    double *C = malloc(N * N * sizeof(*C));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            A[i * N + j] = B[i * N + j] = 1.0;
+        }
+    }
+    matrix_multiply(A, B, C, N);
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            printf("%8lg ", C[i * N + j]);
+        }
+        printf("\n");
+    }
+}
+
 int main() {
-    dump_regs();
+    matrix_demo();
     return 0;
 }
