@@ -1,42 +1,42 @@
 #include <immintrin.h>
 
-void __attribute__ ((noinline)) transpose4(double *m, int n) {
-    for (int i = 0; i < n; i += 4) {
-        for (int j = i + 4; j < n; j += 4) {
-            __m256d a = _mm256_load_pd(&m[(i + 0) * n + j]);
-            __m256d b = _mm256_load_pd(&m[(i + 1) * n + j]);
-            __m256d c = _mm256_load_pd(&m[(i + 2) * n + j]);
-            __m256d d = _mm256_load_pd(&m[(i + 3) * n + j]);
-
-            __m256d e = _mm256_load_pd(&m[(j + 0) * n + i]);
-            __m256d f = _mm256_load_pd(&m[(j + 1) * n + i]);
-            __m256d g = _mm256_load_pd(&m[(j + 2) * n + i]);
-            __m256d h = _mm256_load_pd(&m[(j + 3) * n + i]);
-
-            _mm256_store_pd(&m[(j + 0) * n + i], a);
-            _mm256_store_pd(&m[(j + 1) * n + i], b);
-            _mm256_store_pd(&m[(j + 2) * n + i], c);
-            _mm256_store_pd(&m[(j + 3) * n + i], d);
-
-            _mm256_store_pd(&m[(i + 0) * n + j], e);
-            _mm256_store_pd(&m[(i + 1) * n + j], f);
-            _mm256_store_pd(&m[(i + 2) * n + j], g);
-            _mm256_store_pd(&m[(i + 3) * n + j], h);
+void __attribute__ ((noinline)) transpose(double *m, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            double t = m[i * n + j];
+            m[i * n + j] = m[j * n + i];
+            m[j * n + i] = t;
         }
     }
 }
 
 void matrix_multiply(double *a, double *b, double *c, int n) {
-    transpose4(b, n);
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j += 4) {
-            __m256d t4 = _mm256_set_pd(0, 0, 0, 0);
-            for (int k = 0; k < n; k++) {
-                __m256d a4 = _mm256_set_pd(a[i * n + k], a[i * n + k], a[i * n + k], a[i * n + k]);
-                __m256d b4 = _mm256_load_pd(&b[j * n + k * 4]);
-                t4 = _mm256_fmadd_pd(a4, b4, t4);
+    transpose(b, n);
+    int si = 20, sj = 16;
+    for (int ti = 0; ti < n / si; ti++) {
+        for (int tj = 0; tj < n / sj; tj++) {
+            for (int pi = 0; pi < si; pi++) {
+                for (int pj = 0; pj < sj; pj += 4) {
+                    int i = ti * si + pi;
+                    int j = tj * sj + pj;
+                    double t0 = 0, t1 = 0, t2 = 0, t3 = 0;
+                    double t4 = 0, t5 = 0, t6 = 0, t7 = 0;
+                    for (int k = 0; k < n; k += 2) {
+                        t0 += a[i * n + k + 0] * b[(j + 0) * n + k + 0];
+                        t1 += a[i * n + k + 0] * b[(j + 1) * n + k + 0];
+                        t2 += a[i * n + k + 0] * b[(j + 2) * n + k + 0];
+                        t3 += a[i * n + k + 0] * b[(j + 3) * n + k + 0];
+                        t4 += a[i * n + k + 1] * b[(j + 0) * n + k + 1];
+                        t5 += a[i * n + k + 1] * b[(j + 1) * n + k + 1];
+                        t6 += a[i * n + k + 1] * b[(j + 2) * n + k + 1];
+                        t7 += a[i * n + k + 1] * b[(j + 3) * n + k + 1];
+                    }
+                    c[i * n + j + 0] = t0 + t4;
+                    c[i * n + j + 1] = t1 + t5;
+                    c[i * n + j + 2] = t2 + t6;
+                    c[i * n + j + 3] = t3 + t7;
+                }
             }
-            _mm256_store_pd(&c[i * n + j], t4);
         }
     }
 }
